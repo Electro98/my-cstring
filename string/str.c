@@ -11,22 +11,65 @@ str_t concatenate(str_t str1, str_t str2)
             .ptr = malloc((str1.len + str2.len - 1) * sizeof(char))
     };
     int i = 0;
-    for (int j = 0; j < pure_length(str1); ++j, ++i)
+    for (int j = 0; j < pure_len(str1); ++j, ++i)
         result.ptr[i] = str1.ptr[j];
     for (int j = 0; j < str2.len; ++j, ++i)
         result.ptr[i] = str2.ptr[j];
     return result;
 }
 
-uint32_t replace(str_t str, const char* pattern, const char* replace);
+int32_t replace(str_t* str, const char* pattern, const char* replace)
+{
+    return replace_str(str, pattern, from_cstr(replace));
+}
 
-uint32_t replace_str(str_t str, const char* pattern, str_t replace);
+int32_t replace_str(str_t *str, const char* pattern, str_t str_replace)
+{
+    str_t str_pattern = from_cstr(pattern);
+    uint32_t* indexes_arr = malloc(pure_len((*str)));
+    uint32_t counter = 0;
+    str_t buf;
+    for (uint32_t i = 0; i < pure_len((*str)); ++i)
+    {
+        buf.len = str->len - i;
+        buf.ptr = str->ptr + i;
+        uint32_t index = index_str(buf, str_pattern);
+        if (index == STR_NOT_FOUND)
+            break;
+        indexes_arr[counter++] = i + index;
+        i += index + pure_len(str_pattern);
+    }
+    if (counter == 0)
+        return STR_NOT_FOUND;
+    uint32_t result_len = str->len + (pure_len(str_replace) - pure_len(str_pattern)) * counter;
+    str_t result = {
+            .ptr = malloc(result_len),
+            .len = result_len,
+    };
+    result.ptr[pure_len(result)] = '\0';
+    for (uint32_t i = 0, old_i = 0, counter_id = 0; i < pure_len(result); ++i)
+    {
+        if ((counter_id < counter) && (old_i == indexes_arr[counter_id]))
+        {
+            for (int j = 0; j < pure_len(str_replace); ++j, ++i)
+                result.ptr[i] = str_replace.ptr[j];
+            old_i += pure_len(str_pattern);
+            ++counter_id;
+            --i;
+        }
+        else
+            result.ptr[i] = str->ptr[old_i++];
+    }
+    stfree((*str));
+    *str = result;
+    return SUCCESS;
+}
 
 uint32_t* kmp_table(str_t str)
 {
-    uint32_t* ptr = calloc(pure_length(str), sizeof(uint32_t));
+    uint32_t* ptr = calloc(pure_len(str), sizeof(uint32_t));
     uint32_t cnd = 0;
-    for (int i = 1; i < pure_length(str); ++i)
+    for (int i = 1; i < pure_len(str); ++i)
     {
         while ((cnd > 0) && (str.ptr[i] == str.ptr[cnd]))
             cnd = ptr[cnd - 1];
@@ -50,7 +93,7 @@ uint32_t index_str(str_t string, str_t substring)
         if (string.ptr[i] == substring.ptr[j])
             ++j;
 
-        if (j == substring.len)
+        if (j == pure_len(substring))
         {
             result = i - j + 1;
             break;
@@ -149,10 +192,10 @@ bool equals(str_t str1, str_t str2)
 str_t multi_str(str_t str, uint32_t num)
 {
     str_t result = {
-            .ptr = malloc((pure_length(str) * num + 1) * sizeof(char)),
-            .len = pure_length(str) * num + 1,
+            .ptr = malloc((pure_len(str) * num + 1) * sizeof(char)),
+            .len = pure_len(str) * num + 1,
     };
-    result.ptr[pure_length(result)] = '\0';
+    result.ptr[pure_len(result)] = '\0';
     char* dst = to_char(result);
     for (int i = 0; i < num; ++i)
         for (char* src = to_char(str); *src; ++src, ++dst)
@@ -189,7 +232,7 @@ char* copy_cstr(const char* str)
     return result;
 }
 
-str_t from_cstr(char* str)
+str_t from_cstr(const char* str)
 {
     return (str_t) {
             .ptr = copy_cstr(str),

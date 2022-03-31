@@ -9,10 +9,12 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define pure_length(str) (str.len - 1)
+#define pure_len(str) (str.len - 1)
+#define len(str) (str.len)
 #define get_char(str, i) (str.ptr[i])
 #define to_char(str) (str.ptr)
 
+#define SUCCESS 0
 #define STR_NOT_FOUND -1
 #define bool uint8_t
 #define true 1
@@ -24,8 +26,8 @@ typedef struct {
 } str_t;
 
 str_t concatenate(str_t str1, str_t str2);
-uint32_t replace(str_t str, const char* pattern, const char* replace);
-uint32_t replace_str(str_t str, const char* pattern, str_t replace);
+int32_t replace(str_t *str, const char* pattern, const char* replace);
+int32_t replace_str(str_t *str, const char* pattern, str_t replace);
 uint32_t index_str(str_t string, str_t substring);
 bool check_str_in(str_t string, str_t substring);
 str_t upper(str_t str);
@@ -40,7 +42,8 @@ void stfree(str_t str);
 
 // input logic
 
-str_t from_cstr(char *str);
+uint32_t cstr_len(const char* str);
+str_t from_cstr(const char *str);
 str_t get_str();
 str_t get_fstr(FILE* stream);
 

@@ -5,6 +5,7 @@
 #ifndef STRING_STR_H
 #define STRING_STR_H
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -20,11 +21,16 @@
 #define true 1
 #define false 0
 
+#ifndef F_STR_BUFFER_SIZE
+#define F_STR_BUFFER_SIZE 256
+#endif
+
 typedef struct {
     uint32_t len;
     char* ptr;
 } str_t;
 
+str_t f_str(const char* format, ...);
 str_t concatenate(str_t str1, str_t str2);
 int32_t replace(str_t *str, const char* pattern, const char* replace);
 int32_t replace_str(str_t *str, const char* pattern, str_t replace);
@@ -43,6 +49,7 @@ void stfree(str_t str);
 // input logic
 
 uint32_t cstr_len(const char* str);
+char* copy_cstr(const char* str);
 str_t from_cstr(const char *str);
 str_t get_str();
 str_t get_fstr(FILE* stream);

@@ -4,6 +4,20 @@
 
 #include "str.h"
 
+str_t f_str(const char* format, ...)
+{
+    static char buff[F_STR_BUFFER_SIZE];
+    for (int i = 0; i < F_STR_BUFFER_SIZE; ++i)
+        buff[i] = 0;
+    va_list args;
+    va_start(args, format);
+    int result = vsprintf(buff, format, args);
+    va_end(args);
+    if (result < 0)
+        return (str_t){};
+    return from_cstr(buff);
+}
+
 str_t concatenate(str_t str1, str_t str2)
 {
     str_t result = {
@@ -20,7 +34,10 @@ str_t concatenate(str_t str1, str_t str2)
 
 int32_t replace(str_t* str, const char* pattern, const char* replace)
 {
-    return replace_str(str, pattern, from_cstr(replace));
+    str_t str_replace = from_cstr(replace);
+    int32_t result = replace_str(str, pattern, str_replace);
+    stfree(str_replace);
+    return result;
 }
 
 int32_t replace_str(str_t *str, const char* pattern, str_t str_replace)
@@ -62,6 +79,7 @@ int32_t replace_str(str_t *str, const char* pattern, str_t str_replace)
     }
     stfree((*str));
     *str = result;
+    stfree(str_pattern);
     return SUCCESS;
 }
 
